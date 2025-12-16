@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>동체시력 테스트</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000000;
+      color: #eaf0ff;
+      font-family: system-ui, -apple-system, "Noto Sans KR", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .stage {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* ✅ 버튼이 보일 때(시작 전/종료 후) = 지금처럼 위쪽 */
+    .centerText {
+      font-size: clamp(32px, 7vw, 80px);
+      font-weight: 800;
+      text-align: center;
+      user-select: none;
+      transform: translateY(-100px);
+      transition: transform 0.35s ease; /* (선택) 부드럽게 이동 */
+    }
+
+    /* ✅ 시작 버튼을 누른 뒤(카운트다운/진행 중) = 정중앙 */
+    .centerText.center {
+      transform: translateY(0);
+    }
+
+    .startBtn {
+      position: absolute;
+      font-size: 22px;
+      padding: 18px 40px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      background: #e4002b;
+      color: white;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      transform: translateY(80px);
+    }
+
+    .startBtn.hidden {
+      display: none;
+    }
+
+    .logo {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      height: 40px;
+      z-index: 10;
+      user-select: none;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔥 왼쪽 상단 로고 -->
+  <img src="t1a.gg.png" alt="logo" class="logo">
+
+  <div class="stage">
+    <div id="centerText" class="centerText">
+      동체시력 테스트
+    </div>
+    <button id="startBtn" class="startBtn">
+      START
+    </button>
+  </div>
+
+  <script>
+    const INTERVAL_MS = 100;
+    const COUNTDOWN_SEC = 5;
+
+    // 랜덤 정답 후보
+    const answerPool = [
+      "사과",
+      "T1",
+      "고양이",
+      "동체시력",
+      "LOL",
+      "2025",
+      "🫣"
+    ];
+
+    const basePhrases = [
+      "지금부터",
+      "동체",
+      "시력",
+      "테스트를",
+      "시작",
+      "해볼게요",
+      "🫣💨💨",
+      "정답은",
+      "(@)",
+      "입니다",
+      "정답을",
+      "확인",
+      "하셨다면",
+      "스태프에게",
+      "말씀",
+      "해주세요",
+      "감사",
+      "합니다"
+    ];
+
+    const centerText = document.getElementById("centerText");
+    const startBtn = document.getElementById("startBtn");
+
+    let countdownTimer = null;
+    let runTimer = null;
+    let isRunning = false;
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function clearTimers() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      if (runTimer) {
+        clearInterval(runTimer);
+        runTimer = null;
+      }
+    }
+
+    function startTest() {
+      if (isRunning) return;
+      isRunning = true;
+
+      startBtn.classList.add("hidden");
+
+      // ✅ 시작 누른 뒤엔 센터텍스트를 정중앙으로
+      centerText.classList.add("center");
+
+      const answer = pickRandom(answerPool);
+      const phrases = basePhrases.map(p => (p === "(@)" ? answer : p));
+
+      let countdown = COUNTDOWN_SEC;
+      centerText.textContent = countdown;
+
+      countdownTimer = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          centerText.textContent = countdown;
+        } else {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          runTest(phrases);
+        }
+      }, 1000);
+    }
+
+    function runTest(phrases) {
+      let index = 0;
+      centerText.textContent = phrases[index];
+
+      runTimer = setInterval(() => {
+        index++;
+        if (index >= phrases.length) {
+          clearInterval(runTimer);
+          runTimer = null;
+          endTest();
+          return;
+        }
+        centerText.textContent = phrases[index];
+      }, INTERVAL_MS);
+    }
+
+    function endTest() {
+      isRunning = false;
+      centerText.textContent = "끝! 👀";
+
+      // ✅ 끝나면 다시 위쪽(버튼 있는 상태)으로 복귀
+      centerText.classList.remove("center");
+
+      startBtn.textContent = "다시 시작";
+      startBtn.classList.remove("hidden");
+    }
+ 
+    startBtn.addEventListener("click", startTest);
+
+    // (선택) 스페이스바로 시작
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (!isRunning) startTest();
+      }
+    });
+  </script>
+</body>
+</html>
