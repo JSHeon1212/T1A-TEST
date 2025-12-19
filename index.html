@@ -9,7 +9,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: #000000;
+      background: #000;
       color: #eaf0ff;
       font-family: system-ui, -apple-system, "Noto Sans KR", sans-serif;
       display: flex;
@@ -20,10 +20,10 @@
     .stage {
       width: 100%;
       height: 100vh;
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      position: relative;
     }
 
     .centerText {
@@ -48,22 +48,20 @@
       border: none;
       cursor: pointer;
       background: #e4002b;
-      color: white;
+      color: #fff;
       font-weight: 700;
       letter-spacing: 0.08em;
       transform: translateY(80px);
     }
 
-    .startBtn.hidden { display: none; }
+    .hidden { display: none; }
 
     .logo {
       position: fixed;
       top: 20px;
       left: 20px;
       height: 40px;
-      z-index: 10;
       pointer-events: none;
-      user-select: none;
     }
 
     .answerPanel {
@@ -72,60 +70,25 @@
       top: 50%;
       transform: translate(-50%, 22%);
       width: min(520px, 86vw);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       text-align: center;
     }
-    .answerPanel.hidden { display: none; }
 
     .inputRow {
-      width: 100%;
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 40px;
+      align-items: center;
     }
-    .inputRow.hidden { display: none; }
 
     .answerInput {
       width: 100%;
-      padding: 14px 16px;
+      padding: 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.06);
-      color: #eaf0ff;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.08);
+      color: #fff;
       font-size: 18px;
       text-align: center;
-      outline: none;
-    }
-    .answerInput:focus { border-color: rgba(228,0,43,0.9); }
-
-    .checkBtn {
-      font-size: 18px;
-      padding: 14px 22px;
-      border-radius: 14px;
-      border: none;
-      cursor: pointer;
-      background: #e4002b;
-      color: white;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      width: 180px;
-    }
-
-    .resultRow {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    }
-    .resultRow.hidden { display: none; }
-
-    .resultText {
-      font-size: 26px;
-      font-weight: 900;
-      min-height: 32px;
     }
 
     .btn {
@@ -137,35 +100,36 @@
       background: #e4002b;
       color: white;
       font-weight: 700;
-      letter-spacing: 0.04em;
       width: 180px;
     }
-    .hidden { display: none; }
+
+    /* ✅ 버튼 영역(확인/다시시작/메인으로)이 같은 자리에서 바뀌도록 */
+    .btnArea {
+      display: grid;
+      place-items: center;
+      min-height: 48px; /* 버튼 높이만큼 자리 확보(깜빡임 방지) */
+      width: 180px;
+    }
   </style>
 </head>
 
 <body>
-  <img src="t1a.gg.png" alt="logo" class="logo">
+  <img src="t1a.gg.png" class="logo" alt="logo">
 
   <div class="stage">
     <div id="centerText" class="centerText">동체시력 테스트</div>
-
     <button id="startBtn" class="startBtn">START</button>
 
     <div id="answerPanel" class="answerPanel hidden">
       <div id="inputRow" class="inputRow">
-        <input id="answerInput" class="answerInput" type="text" placeholder="정답을 입력하세요" autocomplete="off" />
-        <button id="checkBtn" class="checkBtn">확인</button>
-      </div>
+        <input id="answerInput" class="answerInput" placeholder="정답을 입력하세요" />
 
-      <div id="resultRow" class="resultRow hidden">
-        <div id="resultText" class="resultText"></div>
-
-        <!-- 오답일 때만 -->
-        <button id="restartBtn" class="btn hidden">다시 시작</button>
-
-        <!-- 정답일 때만 -->
-        <button id="mainBtn" class="btn hidden">메인으로</button>
+        <!-- ✅ 버튼이 같은 자리에서 교체됨 -->
+        <div class="btnArea">
+          <button id="checkBtn" class="btn">확인</button>
+          <button id="restartBtn" class="btn hidden">다시 시작</button>
+          <button id="mainBtn" class="btn hidden">메인으로</button>
+        </div>
       </div>
     </div>
   </div>
@@ -174,174 +138,138 @@
     const INTERVAL_MS = 100;
     const COUNTDOWN_SEC = 3;
 
-    const answerPool = ["티원", "아티", "페이커", "노틸러스"];
-
+    const answerPool = ["티원", "아티", "페이커", "노틸러스", "홈그라운드", "플레이메이트", "티어업", "T1A"];
     const basePhrases = [
       "지금부터","동체","시력","테스트를","시작","해볼게요","🫣💨💨",
       "정답은","(@)","입니다","정답을","확인","하셨다면","입력창에",
       "정답을","적어","주세요","감사","합니다"
     ];
 
-    const centerText  = document.getElementById("centerText");
-    const startBtn    = document.getElementById("startBtn");
-
+    const centerText = document.getElementById("centerText");
+    const startBtn = document.getElementById("startBtn");
     const answerPanel = document.getElementById("answerPanel");
-    const inputRow    = document.getElementById("inputRow");
+    const inputRow = document.getElementById("inputRow");
     const answerInput = document.getElementById("answerInput");
-    const checkBtn    = document.getElementById("checkBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const mainBtn = document.getElementById("mainBtn");
 
-    const resultRow   = document.getElementById("resultRow");
-    const resultText  = document.getElementById("resultText");
-    const restartBtn  = document.getElementById("restartBtn");
-    const mainBtn     = document.getElementById("mainBtn");
-
-    let isRunning = false;
-    let countdownTimer = null;
-    let runTimer = null;
     let currentAnswer = "";
+    let currentPhrases = null;
+    let isRunning = false;
+    let timer = null;
 
     function pickRandom(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function clearTimers() {
-      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-      if (runTimer) { clearInterval(runTimer); runTimer = null; }
+    function clearTimer() {
+      if (timer) clearInterval(timer);
+      timer = null;
     }
 
-    function resetUIToMain() {
-      // 메인(START) 화면으로 초기화
-      answerPanel.classList.add("hidden");
-      inputRow.classList.remove("hidden");
-      resultRow.classList.add("hidden");
+    function hideActionButtons() {
+      checkBtn.classList.add("hidden");
       restartBtn.classList.add("hidden");
       mainBtn.classList.add("hidden");
+    }
 
-      answerInput.value = "";
-      resultText.textContent = "";
+    function resetToMain() {
+      clearTimer();
+      currentAnswer = "";
+      currentPhrases = null;
 
       centerText.textContent = "동체시력 테스트";
       centerText.classList.remove("center");
 
       startBtn.classList.remove("hidden");
+      answerPanel.classList.add("hidden");
+
       isRunning = false;
     }
 
-    function showAnswerInput() {
-      // 입력 화면 표시
-      answerPanel.classList.remove("hidden");
-      inputRow.classList.remove("hidden");
-      resultRow.classList.add("hidden");
-
-      restartBtn.classList.add("hidden");
-      mainBtn.classList.add("hidden");
-
-      answerInput.value = "";
-      resultText.textContent = "";
-      answerInput.focus();
-    }
-
-    function showResultUI() {
-      // 입력 숨기고 결과 표시
-      inputRow.classList.add("hidden");
-      resultRow.classList.remove("hidden");
-    }
-
-    function startTest() {
+    function startTest(reuse = false) {
       if (isRunning) return;
       isRunning = true;
 
-      clearTimers();
-
       startBtn.classList.add("hidden");
+      answerPanel.classList.add("hidden");
       centerText.classList.add("center");
 
-      // 새 정답 선택
-      currentAnswer = pickRandom(answerPool);
-      const phrases = basePhrases.map(p => (p === "(@)" ? currentAnswer : p));
+      if (!reuse || !currentAnswer) {
+        currentAnswer = pickRandom(answerPool);
+        currentPhrases = basePhrases.map(p => p === "(@)" ? currentAnswer : p);
+      }
 
-      // 카운트다운
-      let countdown = COUNTDOWN_SEC;
-      centerText.textContent = countdown;
+      let count = COUNTDOWN_SEC;
+      centerText.textContent = count;
 
-      countdownTimer = setInterval(() => {
-        countdown--;
-        if (countdown > 0) {
-          centerText.textContent = countdown;
+      timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          centerText.textContent = count;
         } else {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-          runTest(phrases);
+          clearTimer();
+          runPhrases();
         }
       }, 1000);
     }
 
-    function runTest(phrases) {
-      let index = 0;
-      centerText.textContent = phrases[index];
+    function runPhrases() {
+      let idx = 0;
+      centerText.textContent = currentPhrases[idx];
 
-      runTimer = setInterval(() => {
-        index++;
-        if (index >= phrases.length) {
-          clearInterval(runTimer);
-          runTimer = null;
-          endTest();
+      timer = setInterval(() => {
+        idx++;
+        if (idx >= currentPhrases.length) {
+          clearTimer();
+          showInput();
           return;
         }
-        centerText.textContent = phrases[index];
+        centerText.textContent = currentPhrases[idx];
       }, INTERVAL_MS);
     }
 
-    function endTest() {
+    function showInput() {
       isRunning = false;
+
       centerText.textContent = "정답을 입력하세요";
-      showAnswerInput();
+      answerPanel.classList.remove("hidden");
+      inputRow.classList.remove("hidden");
+
+      answerInput.value = "";
+      answerInput.focus();
+
+      // ✅ 입력 단계에서는 확인 버튼만 보이기
+      hideActionButtons();
+      checkBtn.classList.remove("hidden");
     }
 
     function checkAnswer() {
-      const user = answerInput.value.trim();
+      const user = (answerInput.value || "").trim();
       if (!user) return;
 
-      showResultUI();
-
-      // 버튼 초기화
-      restartBtn.classList.add("hidden");
-      mainBtn.classList.add("hidden");
+      // ✅ 확인 버튼 숨기고, 결과에 따라 '같은 자리'에 버튼 표시
+      hideActionButtons();
 
       if (user === currentAnswer) {
         centerText.textContent = "정답입니다";
-        resultText.textContent = ""; // 필요하면 메시지 넣어도 됨
-        mainBtn.classList.remove("hidden");     // ✅ 정답 → 메인으로
+        mainBtn.classList.remove("hidden");
       } else {
         centerText.textContent = "오답입니다";
-        resultText.textContent = ""; // 필요하면 메시지 넣어도 됨
-        restartBtn.classList.remove("hidden");  // ✅ 오답 → 다시 시작(입력창으로)
+        restartBtn.classList.remove("hidden");
       }
     }
 
-    function restartToInput() {
-      // 오답일 때: 입력창으로 복귀 (메인으로 가지 않음)
-      centerText.textContent = "정답을 입력하세요";
-      showAnswerInput();
-    }
+    // ✅ 버튼 동작
+    startBtn.onclick = () => startTest(false);     // 메인 START = 새 문제
+    restartBtn.onclick = () => startTest(true);    // 오답 다시 시작 = 같은 문제 재생
+    mainBtn.onclick = resetToMain;                 // 정답 메인으로 = 완전 처음
+    checkBtn.onclick = checkAnswer;
 
-    function goMain() {
-      // 정답일 때: 완전 메인으로
-      clearTimers();
-      resetUIToMain();
-    }
-
-    startBtn.addEventListener("click", startTest);
-    checkBtn.addEventListener("click", checkAnswer);
-    restartBtn.addEventListener("click", restartToInput);
-    mainBtn.addEventListener("click", goMain);
-
-    answerInput.addEventListener("keydown", e => {
+    answerInput.onkeydown = e => {
       if (e.key === "Enter") checkAnswer();
-    });
-
-    // 최초 진입 상태
-    resetUIToMain();
+    };
   </script>
 </body>
 </html>
